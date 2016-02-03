@@ -9,5 +9,7 @@ public class Communicator {
 	public void setData(String data) {
 		this.data = data;
 	}
-	
+	public void clear(){
+		data = null;
+	}
 }

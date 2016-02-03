@@ -3,16 +3,18 @@ public class Main{
 	private static int AndroidPort = 8888;
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		Communicator communicator = new Communicator();
+		Communicator communicatorA = new Communicator();
+		Communicator communicatorB = new Communicator();
+		SocketServer arduino = new SocketServer(ArduinoPort,"Arduino");
+		SocketServer android = new SocketServer(AndroidPort,"Android");
 		
-		SocketServer sender = new SocketServer(ArduinoPort,"Sender");
-		SocketServer receiver = new SocketServer(AndroidPort,"Receiver");
-		MainUI gui = new MainUI(sender.getHistoryPanel(),receiver.getHistoryPanel());
+		MainUI gui = new MainUI(arduino.getHistoryPanel(),android.getHistoryPanel());
 		gui.setVisible(true);
 		
-		sender.setCommunicator(communicator);
-		receiver.setCommunicator(communicator);
-		sender.start();
-		receiver.start();
+		arduino.setCommunicator(communicatorA,communicatorB);
+		android.setCommunicator(communicatorB,communicatorA);
+		
+		arduino.start();
+		android.start();
 	}
 }
