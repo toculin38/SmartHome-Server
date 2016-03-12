@@ -7,6 +7,7 @@ import javax.swing.*;
 
 public class SocketServer extends java.lang.Thread {
 
+	private DataManager dataManager;
 	private DataInputStream in;
 	private DataOutputStream out;
 	private String data = null;
@@ -15,8 +16,10 @@ public class SocketServer extends java.lang.Thread {
 	private ServerSocket server;
 	private HistoryPanel historylog;
 	private boolean connecting = false;
-
+	private String role;
+	
 	public SocketServer(int port, String role) {
+		this.role = role;
 		historylog = new HistoryPanel(role);
 		try {
 			server = new ServerSocket(port);
@@ -63,7 +66,16 @@ public class SocketServer extends java.lang.Thread {
 				try {
 					data = in.readUTF();
 					updateLog("Server取得的值:" + data);
-					seter.setData(data);
+					String[] s = analysisCommand(data);
+					if(s != null){
+						for(int i = 0 ; i < s.length; i++){
+							out.writeUTF(s[i]);
+						}
+					}
+					else{
+						seter.setData(data);
+					}
+
 				} catch (java.net.SocketTimeoutException e) {
 					// do nothing keep going
 				} catch (IOException e) {
@@ -81,13 +93,15 @@ public class SocketServer extends java.lang.Thread {
 					data = geter.getData();
 					if (data != null) {
 						out.writeUTF(data);
-						out.flush();
 						updateLog("Server送出的值:" + data);
+						if(role.equals("Arduino")){
+							dataManager.handle(data);
+						}
 						data = null;
 						geter.clear();
 					}
 					Thread.sleep(100); // if loop speed is too fast the message
-										// can not send correctly
+									   // can not send correctly
 				} catch (java.net.SocketTimeoutException e) {
 					// do nothing keep going
 				} catch (InterruptedException e) {
@@ -106,10 +120,26 @@ public class SocketServer extends java.lang.Thread {
 		this.seter = seter;
 	}
 
+	public void setDataManager(DataManager dataManager){
+		this.dataManager = dataManager;
+	}
+	
 	public HistoryPanel getHistoryPanel() {
 		return this.historylog;
 	}
 
+	private String[] analysisCommand(String command){
+		String[] s = null;
+		switch(command){
+			case "get TV state":
+				s = dataManager.getStates("TV");
+				break;
+			default :
+
+		}
+		return s;
+	}
+	
 	private void updateLog(String message) {
 		historylog.addMessage(message);
 	}
@@ -118,4 +148,5 @@ public class SocketServer extends java.lang.Thread {
 		historylog.addMessage(message);
 		historylog.changeStateColor(connection);
 	}
+	
 }
