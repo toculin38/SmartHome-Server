@@ -1,5 +1,5 @@
 public class Main{
-	private static int ArduinoPort = 8890;
+	private static int ArduinoPort = 8087;
 	private static int AndroidPort = 8888;
 	
 	public static void main(String[] args) {
@@ -9,7 +9,7 @@ public class Main{
 		
 		DataManager dataManager = new DataManager();
 		
-		SocketServer arduino = new SocketServer(ArduinoPort,"Arduino");
+		ArduinoSocketServer arduino = new ArduinoSocketServer(ArduinoPort,"Arduino");
 		SocketServer android = new SocketServer(AndroidPort,"Android");
 		
 		MainUI gui = new MainUI(arduino.getHistoryPanel(),android.getHistoryPanel());
@@ -21,7 +21,7 @@ public class Main{
 		arduino.setDataManager(dataManager);
 		android.setDataManager(dataManager);
 		
-		arduino.start();
 		android.start();
+		arduino.start();
 	}
 }

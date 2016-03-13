@@ -1,16 +1,17 @@
-import java.io.DataInputStream;
+import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
+
 import javax.swing.*;
 
-public class SocketServer extends java.lang.Thread {
+public class ArduinoSocketServer extends java.lang.Thread {
 
 	private DataManager dataManager;
-	private DataInputStream in;
 	private DataOutputStream out;
-	
+	private BufferedReader br ;
 	private Communicator geter;
 	private Communicator seter;
 	private ServerSocket server;
@@ -18,7 +19,7 @@ public class SocketServer extends java.lang.Thread {
 	private boolean connecting = false;
 	private String role;
 	
-	public SocketServer(int port, String role) {
+	public ArduinoSocketServer(int port, String role) {
 		this.role = role;
 		historylog = new HistoryPanel(role);
 		try {
@@ -41,13 +42,14 @@ public class SocketServer extends java.lang.Thread {
 					updateLog("等待連線 port : " + server.getLocalPort());
 					socket = server.accept();
 					updateLog("取得連線 : InetAddress = " + socket.getInetAddress(), true);
-					socket.setSoTimeout(15000);
-					in = new java.io.DataInputStream(socket.getInputStream());
+					socket.setSoTimeout(15000);					
 					out = new java.io.DataOutputStream(socket.getOutputStream());
+					br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 					connecting = true;
-				}
+				}								//要用BUFFER寫
+				
 				new Sender().start();
-				new Receiver().start();			
+				new Receiver().start();
 				while(connecting){
 					Thread.sleep(100);
 				}
@@ -60,22 +62,29 @@ public class SocketServer extends java.lang.Thread {
 		}
 	}
 
-	private class Receiver extends java.lang.Thread {
-		public void run() {
-			String data3;
+	private class Receiver extends java.lang.Thread
+	{
+		public void run()
+		{
+			String data="";
 			while (connecting == true) {
 				try {
-					data3 = in.readUTF();
-					updateLog("Server取得的值:" + data3);
-					String[] s = analysisCommand(data3);
-					if(s != null){
-						for(int i = 0 ; i < s.length; i++){
-							out.writeUTF(s[i]);
-						}
+					data = br.readLine();
+					//if(in.available()>0)
+					if(!data.isEmpty())
+					{
+						updateLog("Server取得的值:" + data);
+						String[] s = analysisCommand(data);
+						if(s != null){
+							for(int i = 0 ; i < s.length; i++)
+							{
+								out.writeUTF(s[i]);
+							}
 					}
 					else{
-						seter.setData(data3);
+						seter.setData(data);
 					}
+				}
 
 				} catch (java.net.SocketTimeoutException e) {
 					// do nothing keep going
@@ -87,19 +96,21 @@ public class SocketServer extends java.lang.Thread {
 		}
 	}
 
-	private class Sender extends java.lang.Thread {
-		public void run() {
-			String data4;
+	private class Sender extends java.lang.Thread 
+	{
+		public void run() 
+		{
+			String data2;
 			while (connecting == true) {
 				try {
-					data4 = geter.getData();
-					if (data4 != null) {
-						out.writeUTF(data4);
-						updateLog("Server送出的值:" + data4);
+					data2 = geter.getData();
+					if (data2 != null) {
+						out.writeUTF(data2);
+						updateLog("Server送出的值:" + data2);
 						if(role.equals("Arduino")){
-							dataManager.handle(data4);
+							dataManager.handle(data2);
 						}
-						data4 = null;
+						data2 = null;
 						geter.clear();
 					}
 					Thread.sleep(100); // if loop speed is too fast the message
