@@ -1,8 +1,10 @@
 
 public class TVState{
+	private boolean enable;
 	private boolean power;
 	private int channel;
 	public TVState(){
+		enable = true;
 		power = false;
 		channel = 12;
 	}
@@ -12,9 +14,10 @@ public class TVState{
 	}
 	
 	public String[] getStates(){
-		String[] s = new String[2];
-		s[0] = "" + power;
-		s[1] = "" + channel;
+		String[] s = new String[3];
+		s[0] = "" + enable;
+		s[1] = "" + power;
+		s[2] = "" + channel;
 		return s;
 	}
 }

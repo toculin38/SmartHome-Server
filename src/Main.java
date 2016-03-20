@@ -1,7 +1,8 @@
 public class Main{
+
 	private static int ArduinoPort = 8087;
 	private static int AndroidPort = 8888;
-	
+
 	public static void main(String[] args) {
 		
 		Communicator communicatorA = new Communicator();
@@ -9,8 +10,10 @@ public class Main{
 		
 		DataManager dataManager = new DataManager();
 		
+		
 		ArduinoSocketServer arduino = new ArduinoSocketServer(ArduinoPort,"Arduino");
 		SocketServer android = new SocketServer(AndroidPort,"Android");
+		
 		
 		MainUI gui = new MainUI(arduino.getHistoryPanel(),android.getHistoryPanel());
 		gui.setVisible(true);
@@ -23,5 +26,6 @@ public class Main{
 		
 		android.start();
 		arduino.start();
+		
 	}
 }
