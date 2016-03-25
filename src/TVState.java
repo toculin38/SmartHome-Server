@@ -1,5 +1,6 @@
 
 public class TVState{
+	private static int varSize = 3;
 	private boolean enable;
 	private boolean power;
 	private int channel;
@@ -14,7 +15,7 @@ public class TVState{
 	}
 	
 	public String[] getStates(){
-		String[] s = new String[3];
+		String[] s = new String[varSize];
 		s[0] = "" + enable;
 		s[1] = "" + power;
 		s[2] = "" + channel;

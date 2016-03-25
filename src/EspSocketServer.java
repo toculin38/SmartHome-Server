@@ -1,72 +1,64 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.ServerSocket;
+import java.net.InetAddress;
 import java.net.Socket;
 
 import javax.swing.*;
 
-public class EspSocketServer extends java.lang.Thread {
-
-	private DataManager dataManager;
-	private BufferedReader br ;
-	private ServerSocket server;
-	private HistoryPanel historylog;
-	private boolean connecting = false;
-	private String role;
+public class EspSocketServer extends SocketServer {
+	
+	BufferedReader br;
+	
 	public EspSocketServer(int port, String role,HistoryPanel hp) {
-		this.role = role;
+		super(port,role);
 		this.historylog = hp;
-		try {
-			server = new ServerSocket(port);
-
-		} catch (java.io.IOException e) {
-			JOptionPane.showMessageDialog(null,
-					"Socket連線有問題 ! 指定的Port可能已經被使用中!" + "\n" + "IOException :" + e.toString() + "\n");
-			System.exit(0);
-		}
 	}
 
 	public void run() {
-		Socket socket;
+		
 		updateLog("伺服器已啟動 !");
-		while (true) {
-			socket = null;
-			try {
-				synchronized (server) {
-					updateLog("等待ESP連線 port : " + server.getLocalPort());
-					socket = server.accept();
-					updateLog("取得連線 : InetAddress = " + socket.getInetAddress(), true);
-					socket.setSoTimeout(15000);					
-					br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-					connecting = true;
-				}								//要用BUFFER寫
-				
+		while (!connecting) {
+			try{
+				updateLog("等待ESP連線 port : " + server.getLocalPort());
+				updateLog("取得連線 : InetAddress = " + startConnect(), true);
 				new Receiver().start();
-				while(connecting){
-					Thread.sleep(100);
-				}
-			} catch (java.io.IOException e) {
-				JOptionPane.showMessageDialog(null, "Socket連線有問題 !" + "\n" + "IOException :" + e.toString() + "\n");
+				watchConnecting();
+			}catch (InterruptedException e) {
+				updateLog("監視連線時，未預期中斷");
+			}catch (java.io.IOException e) {
+				JOptionPane.showMessageDialog(null, "Socket連線有問題 !\n" + e.toString() + "\n");
 				System.exit(0);
-			} catch (InterruptedException e) {
-				updateLog("Sleep未預期的中斷");
 			}
 		}
 	}
-
-	private class Receiver extends java.lang.Thread
-	{
-		public void run()
-		{
+	
+	@Override
+	InetAddress startConnect() throws java.io.IOException{
+		Socket socket = null;
+		synchronized (server) {
+			socket = server.accept();
+			socket.setSoTimeout(15000);					
+			out = new java.io.DataOutputStream(socket.getOutputStream());
+			br = new BufferedReader(new InputStreamReader(socket.getInputStream()));//Cause Arduino need to use buffer
+			connecting = true;
+		}								
+		return socket.getInetAddress();
+	}
+	
+	
+	class Receiver extends SocketServer.Receiver{
+		@Override
+		public void run(){
 			String data="";
 			while (connecting == true) {
 				try {
 					data = br.readLine();
 					if(!data.isEmpty())
 					{
-						updateLog("從ESP取得的值:" + data);
+						updateLog("從" + role + "取得的值:" + data);
 					}
+
 				} catch (java.net.SocketTimeoutException e) {
 					// do nothing keep going
 				} catch (IOException e) {
@@ -77,21 +69,5 @@ public class EspSocketServer extends java.lang.Thread {
 		}
 	}
 	
-	public void setDataManager(DataManager dataManager){
-		this.dataManager = dataManager;
-	}
-	
-	public HistoryPanel getHistoryPanel() {
-		return this.historylog;
-	}
 
-	private void updateLog(String message) {
-		historylog.addMessage(message);
-	}
-
-	private void updateLog(String message, boolean connection) {
-		historylog.addMessage(message);
-		historylog.changeStateColor(connection);
-	}
-	
 }

@@ -51,5 +51,4 @@ public class HistoryPanel extends JPanel{
 	public JPanel getStatePanel() {
 		return statePanel;
 	}
-	//yo
 }

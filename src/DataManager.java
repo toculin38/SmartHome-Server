@@ -6,7 +6,7 @@ public class DataManager {
 		TV = new TVState();
 	}
 	
-	public void handle(String command){
+	public void changeState(String command){
 		switch(command){
 			case "power":
 				TV.turnPower();

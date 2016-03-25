@@ -1,93 +1,69 @@
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.ServerSocket;
+import java.net.InetAddress;
 import java.net.Socket;
 
 import javax.swing.*;
 
-public class ArduinoSocketServer extends java.lang.Thread {
+public class ArduinoSocketServer extends SocketServer {
 
 	private static int TV_EspPort = 8088;
-	private EspSocketServer TV;
-	private DataManager dataManager;
-	private DataOutputStream out;
-	private BufferedReader br ;
-	private Communicator geter;
-	private Communicator seter;
-	private ServerSocket server;
-	private HistoryPanel historylog;
-	private boolean connecting = false;
-	private String role;
+	
+	EspSocketServer TV;
+	BufferedReader br ;
 	
 	public ArduinoSocketServer(int port, String role) {
-		this.role = role;
-		historylog = new HistoryPanel(role);
-		try {
-			server = new ServerSocket(port);
-
-		} catch (java.io.IOException e) {
-			JOptionPane.showMessageDialog(null,
-					"Socket連線有問題 ! 指定的Port可能已經被使用中!" + "\n" + "IOException :" + e.toString() + "\n");
-			System.exit(0);
-		}
+		super(port,role);
 		TV = new EspSocketServer(TV_EspPort,"ESP_TV",this.getHistoryPanel());
 		TV.setDataManager(dataManager);
-		TV.start();
 	}
 
+	@Override
 	public void run() {
-		Socket socket;
 		updateLog("伺服器已啟動 !");
-		while (true) {
-			socket = null;
-			try {
-				synchronized (server) {
-					updateLog("等待連線 port : " + server.getLocalPort());
-					socket = server.accept();
-					updateLog("取得連線 : InetAddress = " + socket.getInetAddress(), true);
-					socket.setSoTimeout(15000);					
-					out = new java.io.DataOutputStream(socket.getOutputStream());
-					br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-					connecting = true;
-				}								//要用BUFFER寫
+		while (!connecting) {
+			try{
+				updateLog("等待連線 port : " + server.getLocalPort());
+				updateLog("取得連線 : InetAddress = " + startConnect(), true);
+				TV.start();
 				new Sender().start();
 				new Receiver().start();
-				while(connecting){
-					Thread.sleep(100);
-				}
-			} catch (java.io.IOException e) {
-				JOptionPane.showMessageDialog(null, "Socket連線有問題 !" + "\n" + "IOException :" + e.toString() + "\n");
+				watchConnecting();
+
+			}catch (InterruptedException e) {
+				updateLog("監視連線時，未預期中斷");
+			}catch (java.io.IOException e) {
+				JOptionPane.showMessageDialog(null, "Socket連線有問題 !\n" + e.toString() + "\n");
 				System.exit(0);
-			} catch (InterruptedException e) {
-				updateLog("Sleep未預期的中斷");
 			}
 		}
 	}
 
-	private class Receiver extends java.lang.Thread
-	{
-		public void run()
-		{
+	@Override
+	InetAddress startConnect() throws java.io.IOException{
+		Socket socket = null;
+		synchronized (server) {
+			socket = server.accept();
+			socket.setSoTimeout(15000);					
+			out = new java.io.DataOutputStream(socket.getOutputStream());
+			br = new BufferedReader(new InputStreamReader(socket.getInputStream()));//Cause Arduino need to use buffer
+			connecting = true;
+		}								
+		return socket.getInetAddress();
+	}
+	
+	class Receiver extends SocketServer.Receiver{
+		@Override
+		public void run(){
 			String data="";
 			while (connecting == true) {
 				try {
 					data = br.readLine();
-					//if(in.available()>0)
 					if(!data.isEmpty())
 					{
-						updateLog("Server取得的值:" + data);
-						String[] s = analysisCommand(data);
-						if(s != null){
-							for(int i = 0 ; i < s.length; i++)
-							{
-								out.writeUTF(s[i]);
-							}
-						}
-						else{
-							seter.setData(data);
-						}
+						updateLog("從" + role + "取得的值:" + data);
+						seter.setData(data);
 					}
 
 				} catch (java.net.SocketTimeoutException e) {
@@ -100,21 +76,20 @@ public class ArduinoSocketServer extends java.lang.Thread {
 		}
 	}
 
-	private class Sender extends java.lang.Thread 
-	{
-		public void run() 
-		{
-			String data2;
+	class Sender extends SocketServer.Sender {
+		@Override
+		public void run() {
+			String data;
 			while (connecting == true) {
 				try {
-					data2 = geter.getData();
-					if (data2 != null) {
-						out.writeUTF(data2);
-						updateLog("Server送出的值:" + data2);
+					data = geter.getData();
+					if (data != null) {
+						out.writeUTF(data);
+						updateLog("Server送出的值:" + data);
 						if(role.equals("Arduino")){
-							dataManager.handle(data2);
+							dataManager.changeState(data);
 						}
-						data2 = null;
+						data = null;
 						geter.clear();
 					}
 					Thread.sleep(100); // if loop speed is too fast the message
@@ -130,40 +105,6 @@ public class ArduinoSocketServer extends java.lang.Thread {
 				}
 			}
 		}
-	}
-
-	public void setCommunicator(Communicator geter,Communicator seter) {
-		this.geter = geter;
-		this.seter = seter;
-	}
-
-	public void setDataManager(DataManager dataManager){
-		this.dataManager = dataManager;
-	}
-	
-	public HistoryPanel getHistoryPanel() {
-		return this.historylog;
-	}
-
-	private String[] analysisCommand(String command){
-		String[] s = null;
-		switch(command){
-			case "get TV state":
-				s = dataManager.getStates("TV");
-				break;
-			default :
-
-		}
-		return s;
-	}
-	
-	private void updateLog(String message) {
-		historylog.addMessage(message);
-	}
-
-	private void updateLog(String message, boolean connection) {
-		historylog.addMessage(message);
-		historylog.changeStateColor(connection);
 	}
 	
 }
