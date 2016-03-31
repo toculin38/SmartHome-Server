@@ -79,23 +79,12 @@ public class ArduinoSocketServer extends SocketServer {
 	class Sender extends SocketServer.Sender {
 		@Override
 		public void run() {
-			String data;
 			while (connecting == true) {
 				try {
-					data = geter.getData();
-					if (data != null) {
-						out.writeUTF(data);
-						updateLog("Server送出的值:" + data);
-						if(role.equals("Arduino")){
-							dataManager.changeState(data);
-						}
-						data = null;
-						geter.clear();
-					}
-					Thread.sleep(100); // if loop speed is too fast the message
-									   // can not send correctly
+					send();
+					Thread.sleep(100); // if loop speed is too fast the message can not send correctly
 				} catch (java.net.SocketTimeoutException e) {
-					// do nothing keep going
+					continue;
 				} catch (InterruptedException e) {
 					updateLog("Sleep未預期的中斷");
 				} catch (IOException e) {
@@ -103,6 +92,18 @@ public class ArduinoSocketServer extends SocketServer {
 					updateLog("失去連線 port : " + server.getLocalPort() + " 等待重新連線...", connecting);
 					e.printStackTrace();
 				}
+			}
+		}
+		private void send() throws IOException{
+			String data = geter.getData();
+			if (data != null) {
+				out.writeUTF(data);
+				updateLog("Server送出的值:" + data);
+				if(role.equals("Arduino")){
+					dataManager.changeState(data);
+				}
+				data = null;
+				geter.clear();
 			}
 		}
 	}

@@ -11,14 +11,14 @@ public class SocketServer extends java.lang.Thread {
 	DataManager dataManager;
 	DataInputStream in;
 	DataOutputStream out;
-	
+
 	Communicator geter;
 	Communicator seter;
 	ServerSocket server;
 	HistoryPanel historylog;
 	boolean connecting = false;
 	String role;
-	
+
 	public SocketServer(int port, String role) {
 		this.role = role;
 		historylog = new HistoryPanel(role);
@@ -35,35 +35,35 @@ public class SocketServer extends java.lang.Thread {
 	public void run() {
 		updateLog("伺服器已啟動 !");
 		while (!connecting) {
-			try{
+			try {
 				updateLog("等待連線 port : " + server.getLocalPort());
 				updateLog("取得連線 : InetAddress = " + startConnect(), true);
 				new Sender().start();
 				new Receiver().start();
 				watchConnecting();
-			}catch (InterruptedException e) {
+			} catch (InterruptedException e) {
 				updateLog("監視連線時，未預期中斷");
-			}catch (java.io.IOException e) {
+			} catch (java.io.IOException e) {
 				JOptionPane.showMessageDialog(null, "Socket連線有問題 !\n" + e.toString() + "\n");
 				System.exit(0);
 			}
 		}
 	}
-	
-	public void setCommunicator(Communicator geter,Communicator seter) {
+
+	public void setCommunicator(Communicator geter, Communicator seter) {
 		this.geter = geter;
 		this.seter = seter;
 	}
 
-	public void setDataManager(DataManager dataManager){
+	public void setDataManager(DataManager dataManager) {
 		this.dataManager = dataManager;
 	}
-	
+
 	public HistoryPanel getHistoryPanel() {
 		return this.historylog;
 	}
-	
-	InetAddress startConnect() throws java.io.IOException{
+
+	InetAddress startConnect() throws java.io.IOException {
 		Socket socket = null;
 		synchronized (server) {
 			socket = server.accept();
@@ -74,30 +74,18 @@ public class SocketServer extends java.lang.Thread {
 		}
 		return socket.getInetAddress();
 	}
-	
-	void watchConnecting() throws InterruptedException{
-		while(connecting){
+
+	void watchConnecting() throws InterruptedException {
+		while (connecting) {
 			Thread.sleep(100);
 		}
 	}
-	
+
 	class Receiver extends java.lang.Thread {
 		public void run() {
-			String data;
 			while (connecting == true) {
 				try {
-					data = in.readUTF();
-					updateLog("從" + role + "取得的值:" + data);
-					String[] s = analysisCommand(data);
-					if(s != null){
-						for(int i = 0 ; i < s.length; i++){
-							out.writeUTF(s[i]);
-						}
-					}
-					else{
-						seter.setData(data);
-					}
-
+					receive();
 				} catch (java.net.SocketTimeoutException e) {
 					// do nothing keep going
 				} catch (IOException e) {
@@ -106,24 +94,31 @@ public class SocketServer extends java.lang.Thread {
 				}
 			}
 		}
+
+		private void receive() throws IOException {
+			String data = in.readUTF();
+			updateLog("從" + role + "取得的值:" + data);
+			String[] s = analysisCommand(data);
+			if (s != null) {
+				for (int i = 0; i < s.length; i++) {
+					out.writeUTF(s[i]);
+				}
+			} else {
+				seter.setData(data);
+			}
+		}
+
 	}
-	
+
 	class Sender extends java.lang.Thread {
 		public void run() {
-			String data;
 			while (connecting == true) {
 				try {
-					data = geter.getData();
-					if (data != null) {
-						out.writeUTF(data);
-						updateLog("Server送出的值:" + data);
-						data = null;
-						geter.clear();
-					}
+					send();
 					Thread.sleep(100); // if loop speed is too fast the message
-									   // can not send correctly
+										// can not send correctly
 				} catch (java.net.SocketTimeoutException e) {
-					// do nothing keep going
+					continue;
 				} catch (InterruptedException e) {
 					updateLog("Sleep未預期的中斷");
 				} catch (IOException e) {
@@ -133,8 +128,18 @@ public class SocketServer extends java.lang.Thread {
 				}
 			}
 		}
+
+		private void send() throws IOException {
+			String data = geter.getData();
+			if (data != null) {
+				out.writeUTF(data);
+				updateLog("Server送出的值:" + data);
+				data = null;
+				geter.clear();
+			}
+		}
 	}
-	
+
 	void updateLog(String message) {
 		historylog.addMessage(message);
 	}
@@ -142,18 +147,18 @@ public class SocketServer extends java.lang.Thread {
 	void updateLog(String message, boolean connection) {
 		historylog.addMessage(message);
 		historylog.changeStateColor(connection);
-	}	
+	}
 
-	private String[] analysisCommand(String command){
+	private String[] analysisCommand(String command) {
 		String[] s = null;
-		switch(command){
-			case "get TV state":
-				s = dataManager.getStates("TV");
-				break;
-			default :
+		switch (command) {
+		case "get TV state":
+			s = dataManager.getStates("TV");
+			break;
+		default:
 
 		}
 		return s;
 	}
-	
+
 }
