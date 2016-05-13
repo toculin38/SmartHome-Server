@@ -38,8 +38,8 @@ public class SocketServer extends java.lang.Thread {
 			try {
 				updateLog("等待連線 port : " + server.getLocalPort());
 				updateLog("取得連線 : InetAddress = " + startConnect(), true);
-				new Sender().start();
-				new Receiver().start();
+				(new Sender()).start();
+				(new Receiver()).start();
 				watchConnecting();
 			} catch (InterruptedException e) {
 				updateLog("監視連線時，未預期中斷");
@@ -95,7 +95,7 @@ public class SocketServer extends java.lang.Thread {
 			}
 		}
 
-		private void receive() throws IOException {
+		protected void receive() throws IOException {
 			String data = in.readUTF();
 			updateLog("從" + role + "取得的值:" + data);
 			String[] s = analysisCommand(data);

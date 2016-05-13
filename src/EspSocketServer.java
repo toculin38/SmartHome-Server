@@ -16,13 +16,12 @@ public class EspSocketServer extends SocketServer {
 	}
 
 	public void run() {
-		
 		updateLog("伺服器已啟動 !");
 		while (!connecting) {
 			try{
 				updateLog("等待ESP連線 port : " + server.getLocalPort());
 				updateLog("取得連線 : InetAddress = " + startConnect(), true);
-				new Receiver().start();
+				(new Receiver()).start();
 				watchConnecting();
 			}catch (InterruptedException e) {
 				updateLog("監視連線時，未預期中斷");
@@ -50,15 +49,10 @@ public class EspSocketServer extends SocketServer {
 	class Receiver extends SocketServer.Receiver{
 		@Override
 		public void run(){
-			String data="";
+			
 			while (connecting == true) {
 				try {
-					data = br.readLine();
-					if(!data.isEmpty())
-					{
-						updateLog("從" + role + "取得的值:" + data);
-					}
-
+					receive();
 				} catch (java.net.SocketTimeoutException e) {
 					// do nothing keep going
 				} catch (IOException e) {
@@ -68,6 +62,5 @@ public class EspSocketServer extends SocketServer {
 			}
 		}
 	}
-	
 
 }

@@ -27,8 +27,8 @@ public class ArduinoSocketServer extends SocketServer {
 				updateLog("等待連線 port : " + server.getLocalPort());
 				updateLog("取得連線 : InetAddress = " + startConnect(), true);
 				TV.start();
-				new Sender().start();
-				new Receiver().start();
+				(new Sender()).start();
+				(new Receiver()).start();
 				watchConnecting();
 
 			}catch (InterruptedException e) {
@@ -56,16 +56,9 @@ public class ArduinoSocketServer extends SocketServer {
 	class Receiver extends SocketServer.Receiver{
 		@Override
 		public void run(){
-			String data="";
 			while (connecting == true) {
 				try {
-					data = br.readLine();
-					if(!data.isEmpty())
-					{
-						updateLog("從" + role + "取得的值:" + data);
-						seter.setData(data);
-					}
-
+					receive();
 				} catch (java.net.SocketTimeoutException e) {
 					// do nothing keep going
 				} catch (IOException e) {
@@ -74,6 +67,18 @@ public class ArduinoSocketServer extends SocketServer {
 				}
 			}
 		}
+		
+		@Override
+		protected void receive() throws IOException{
+			String data="";
+			data = br.readLine();
+			if(!data.isEmpty())
+			{
+				updateLog("從" + role + "取得的值:" + data);
+				seter.setData(data);
+			}
+		}
+		
 	}
 
 	class Sender extends SocketServer.Sender {
