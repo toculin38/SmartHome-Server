@@ -1,9 +1,11 @@
 
 public class TVState{
+	
 	private static int varSize = 3;
 	private boolean enable;
 	private boolean power;
 	private int channel;
+	
 	public TVState(){
 		enable = true;
 		power = false;

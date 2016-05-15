@@ -1,7 +1,7 @@
 public class Main{
 
-	private static int ArduinoPort = 8087;
-	private static int AndroidPort = 8888;
+	private static int ArduinoPort = 9999;
+	private static int AndroidPort = 8880;
 
 	public static void main(String[] args) {
 		
