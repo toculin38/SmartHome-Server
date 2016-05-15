@@ -72,13 +72,16 @@ public class ArduinoSocketServer extends SocketServer {
 		protected void receive() throws IOException{
 			String data="";
 			data = br.readLine();
-			if(!data.isEmpty())
+			updateLog("從" + role + "取得的值:" + data);
+			
+			if(isCommand(data)){
+				handleCommand(data);
+			}
+			else if(!data.isEmpty())
 			{
-				updateLog("從" + role + "取得的值:" + data);
 				seter.setData(data);
 			}
 		}
-		
 	}
 
 	class Sender extends SocketServer.Sender {
@@ -104,9 +107,6 @@ public class ArduinoSocketServer extends SocketServer {
 			if (data != null) {
 				out.writeUTF(data);
 				updateLog("Server送出的值:" + data);
-				if(role.equals("Arduino")){
-					dataManager.changeState(data);
-				}
 				data = null;
 				geter.clear();
 			}

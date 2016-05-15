@@ -98,14 +98,17 @@ public class SocketServer extends java.lang.Thread {
 		protected void receive() throws IOException {
 			String data = in.readUTF();
 			updateLog("從" + role + "取得的值:" + data);
-			String[] s = analysisCommand(data);
-			if (s != null) {
-				for (int i = 0; i < s.length; i++) {
-					out.writeUTF(s[i]);
-				}
-			} else {
+			if(isCommand(data)){
+				String[] s = handleCommand(data);
+				if (s != null) {
+					for (int i = 0; i < s.length; i++) {
+						out.writeUTF(s[i]);
+					}
+				} 
+			}else {
 				seter.setData(data);
 			}
+			
 		}
 
 	}
@@ -149,16 +152,35 @@ public class SocketServer extends java.lang.Thread {
 		historylog.changeStateColor(connection);
 	}
 
-	private String[] analysisCommand(String command) {
+	protected String[] handleCommand(String command) {
 		String[] s = null;
 		switch (command) {
-		case "get TV state":
-			s = dataManager.getStates("TV");
-			break;
-		default:
-
+			case "get TV state":
+				s = dataManager.getStates("TV");
+				break;
+			case "PowerOn":
+				dataManager.changeState("TV", command);
+				break;
+			case "PowerOff":
+				dataManager.changeState("TV", command);
+				break;
+			default:
 		}
 		return s;
 	}
+	
+	protected boolean isCommand(String command) {
+		switch (command) {
+			case "get TV state":
+				return true;
+			case "PowerOn":
+				return true;
+			case "PowerOff":
+				return true;
+			default:
+		}
+		return false;
+	}
+	
 
 }

@@ -1,3 +1,4 @@
+import org.json.JSONObject;
 
 public class TVState{
 	
@@ -7,20 +8,62 @@ public class TVState{
 	private int channel;
 	
 	public TVState(){
-		enable = true;
+		enable = false;
 		power = false;
-		channel = 12;
+		channel = 0;
 	}
 	
-	public void turnPower(){
-		power = !power;
+	public TVState(JSONObject json){
+		enable = json.getBoolean("enable");
+		power = json.getBoolean("power");
+		channel = json.getInt("channel");
 	}
 	
-	public String[] getStates(){
+	public void change(String command){
+		switch(command){
+			case "PowerOn":
+				turnPower(true);
+				break;
+			case "PowerOff":
+				turnPower(false);
+				break;
+		}
+	}
+	
+	public void turnPower(boolean value){
+		power = value;
+	}
+	
+	public String[] states(){
 		String[] s = new String[varSize];
-		s[0] = "" + enable;
-		s[1] = "" + power;
-		s[2] = "" + channel;
+		s[0] = String.valueOf(getEnable());
+		s[1] = String.valueOf(getPower());
+		s[2] = String.valueOf(getChannel());
 		return s;
 	}
+	
+	public boolean getEnable(){
+		return enable;
+	}
+	
+	public void setEnable(boolean enable){
+		this.enable = enable;
+	}
+	
+	public boolean getPower(){
+		return power;
+	}
+	
+	public void setPower(boolean power){
+		this.power = power;
+	}
+	
+	public int getChannel(){
+		return channel;
+	}
+	
+	public void setChannel(int channel){
+		this.channel = channel;
+	}
+	
 }
