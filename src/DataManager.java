@@ -11,13 +11,21 @@ import org.json.JSONObject;
 public class DataManager {
 
 	private static final String FILE_NAME_TV = "TV.json";
-
+	private static final String FILE_NAME_FAN = "Fan.json";
+	private static final String FILE_NAME_AIR = "Air.json";
+	private static final String FILE_NAME_LIGHT = "Light.json";
+	
 	private TVState TV;
-
+	private AirState Air;
+	private LightState Light;
+	private FanState Fan;
+	
 	public DataManager() {
-		JSONObject json = readJsonFile(FILE_NAME_TV);
-		TV = new TVState(json);
-		
+		TV = new TVState(readJsonFile(FILE_NAME_TV));
+		Fan = new FanState(readJsonFile(FILE_NAME_FAN));
+		Air = new AirState(readJsonFile(FILE_NAME_AIR));
+		Light = new LightState(readJsonFile(FILE_NAME_LIGHT));
+
 	}
 
 	public void changeState(String appliance, String command) {
@@ -25,6 +33,18 @@ public class DataManager {
 			case "TV":
 				TV.change(command);
 				writeJsonFile(new JSONObject(TV), FILE_NAME_TV);
+				break;
+			case "Air":
+				Air.change(command);
+				writeJsonFile(new JSONObject(Air), FILE_NAME_AIR);
+				break;
+			case "Light":
+				Light.change(command);
+				writeJsonFile(new JSONObject(Light), FILE_NAME_AIR);
+				break;
+			case "Fan":
+				Fan.change(command);
+				writeJsonFile(new JSONObject(Light), FILE_NAME_FAN);
 				break;
 			default:
 		}
@@ -34,6 +54,12 @@ public class DataManager {
 		switch (type) {
 		case "TV":
 			return TV.states();
+		case "Air":
+			return Air.states();
+		case "Light":
+			return Light.states();
+		case "Fan":
+			return Fan.states();
 		default:
 			return null;
 		}
@@ -55,7 +81,7 @@ public class DataManager {
 			}
 			fr.close();
 		} catch (FileNotFoundException e) {
-			JOptionPane.showMessageDialog(null, "系統找不到指定的檔案 !\n" + e.toString() + "\n");
+			JOptionPane.showMessageDialog(null, "系統找不到" + fileName + "檔案 !\n" + e.toString() + "\n");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

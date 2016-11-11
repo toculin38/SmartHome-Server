@@ -39,7 +39,7 @@ public class HistoryPanel extends JPanel{
 		
 	}
 	public void addMessage(String message){
-		history += message + "\n";
+		history = message + "\n" + history ;
 		area.setText(history);
 	}
 	public void changeStateColor(boolean flag){

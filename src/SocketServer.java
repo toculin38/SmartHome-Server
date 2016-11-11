@@ -158,6 +158,15 @@ public class SocketServer extends java.lang.Thread {
 			case "get TV state":
 				s = dataManager.getStates("TV");
 				break;
+			case "get Fan state":
+				s = dataManager.getStates("Fan");
+				break;
+			case "get Air state":
+				s = dataManager.getStates("Air");
+				break;
+			case "get Light state":
+				s = dataManager.getStates("Light");
+				break;
 			case "PowerOn":
 				dataManager.changeState("TV", command);
 				break;
@@ -171,10 +180,13 @@ public class SocketServer extends java.lang.Thread {
 	
 	protected boolean isCommand(String command) {
 		switch (command) {
+				/* request from android */
 			case "get TV state":
-				return true;
+			case "get Fan state":
+			case "get Air state":
+			case "get Light state":
+				/*request from arduino */
 			case "PowerOn":
-				return true;
 			case "PowerOff":
 				return true;
 			default:
