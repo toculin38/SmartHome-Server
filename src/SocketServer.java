@@ -6,7 +6,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import javax.swing.*;
 
-public class SocketServer extends java.lang.Thread {
+public abstract class SocketServer extends java.lang.Thread {
 
 	DataManager dataManager;
 	DataInputStream in;
@@ -152,47 +152,9 @@ public class SocketServer extends java.lang.Thread {
 		historylog.changeStateColor(connection);
 	}
 
-	protected String[] handleCommand(String command) {
-		String[] s = null;
-		switch (command) {
-			case "get TV state":
-				s = dataManager.getStates("TV");
-				break;
-			case "get Fan state":
-				s = dataManager.getStates("Fan");
-				break;
-			case "get Air state":
-				s = dataManager.getStates("Air");
-				break;
-			case "get Light state":
-				s = dataManager.getStates("Light");
-				break;
-			case "PowerOn":
-				dataManager.changeState("TV", command);
-				break;
-			case "PowerOff":
-				dataManager.changeState("TV", command);
-				break;
-			default:
-		}
-		return s;
-	}
+	protected abstract String[] handleCommand(String command);
 	
-	protected boolean isCommand(String command) {
-		switch (command) {
-				/* request from android */
-			case "get TV state":
-			case "get Fan state":
-			case "get Air state":
-			case "get Light state":
-				/*request from arduino */
-			case "PowerOn":
-			case "PowerOff":
-				return true;
-			default:
-		}
-		return false;
-	}
+	protected abstract boolean isCommand(String command);
 	
 
 }

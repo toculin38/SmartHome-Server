@@ -63,4 +63,13 @@ public class EspSocketServer extends SocketServer {
 		}
 	}
 
+	protected String[] handleCommand(String command) {
+		String[] s = null;
+		return s;
+	}
+
+	protected boolean isCommand(String command) {
+		return false;
+	}
+	
 }

@@ -12,7 +12,7 @@ public class Main{
 		
 		
 		ArduinoSocketServer arduino = new ArduinoSocketServer(ArduinoPort,"Arduino");
-		SocketServer android = new SocketServer(AndroidPort,"Android");
+		AndroidSocketServer android = new AndroidSocketServer(AndroidPort,"Android");
 		
 		
 		MainUI gui = new MainUI(arduino.getHistoryPanel(),android.getHistoryPanel());

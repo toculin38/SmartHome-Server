@@ -21,10 +21,10 @@ public class TVState{
 	
 	public void change(String command){
 		switch(command){
-			case "PowerOn":
+			case "TVOn":
 				turnPower(true);
 				break;
-			case "PowerOff":
+			case "TVOff":
 				turnPower(false);
 				break;
 		}
