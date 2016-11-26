@@ -23,10 +23,10 @@ public class AirState{
 	
 	public void change(String command){
 		switch(command){
-			case "PowerOn":
+			case "AirOn":
 				turnPower(true);
 				break;
-			case "PowerOff":
+			case "AirOff":
 				turnPower(false);
 				break;
 		}
