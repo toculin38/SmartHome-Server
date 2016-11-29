@@ -78,7 +78,6 @@ public class ArduinoSocketServer extends SocketServer {
 			String data = "";
 			data = br.readLine();
 			updateLog("從" + role + "取得的值:" + data);
-
 			if (isCommand(data)) {
 				handleCommand(data);
 			} else if (!data.isEmpty()) {
